@@ -39,6 +39,19 @@ const normalizeDate = (value: string): string => {
     throw new Error("Event date must be a valid date");
   }
 
+  const dateParts = /^(\d{4})-(\d{1,2})-(\d{1,2})(?:$|T)/.exec(value);
+  if (dateParts) {
+    const [, year, month, day] = dateParts;
+    const isSameCalendarDate =
+      parsedDate.getUTCFullYear() === Number(year) &&
+      parsedDate.getUTCMonth() + 1 === Number(month) &&
+      parsedDate.getUTCDate() === Number(day);
+
+    if (!isSameCalendarDate) {
+      throw new Error("Event date must be a valid date");
+    }
+  }
+
   return parsedDate.toISOString();
 };
 
@@ -92,6 +105,17 @@ const eventSchema = new Schema<Event>(
 
 eventSchema.index({ slug: 1 }, { unique: true });
 
+eventSchema.pre("validate", function (this: EventDocument) {
+  // Generate a new slug only for new events or when the title changes.
+  if (this.isNew || this.isModified("title")) {
+    const slug = toSlug(this.title);
+    if (!slug) {
+      throw new Error("Event title must produce a valid slug");
+    }
+    this.slug = slug;
+  }
+});
+
 eventSchema.pre("save", function (this: EventDocument) {
   const requiredStrings: Array<
     keyof Pick<
@@ -140,15 +164,6 @@ eventSchema.pre("save", function (this: EventDocument) {
     this.tags.some((item) => !nonEmptyString(item))
   ) {
     throw new Error("Event tags must contain non-empty items");
-  }
-
-  // Generate a new slug only for new events or when the title changes.
-  if (this.isNew || this.isModified("title")) {
-    const slug = toSlug(this.title);
-    if (!slug) {
-      throw new Error("Event title must produce a valid slug");
-    }
-    this.slug = slug;
   }
 
   // Store dates as ISO strings and times as 24-hour HH:mm values.
