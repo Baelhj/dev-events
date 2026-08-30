@@ -126,14 +126,30 @@ const LightRays: React.FC<LightRaysProps> = ({
       cleanupFunctionRef.current = null;
     }
 
+    let cancelled = false;
+
     const initializeWebGL = async () => {
       if (!containerRef.current) return;
 
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      if (!containerRef.current) return;
+      if (cancelled || !containerRef.current) return;
+
+      const canvas = document.createElement("canvas");
+      const contextAttributes: WebGLContextAttributes = { alpha: true };
+      const webglContext =
+        canvas.getContext("webgl2", contextAttributes) ??
+        canvas.getContext("webgl", contextAttributes);
+
+      if (!webglContext) {
+        console.warn(
+          "LightRays: WebGL is unavailable; skipping initialization.",
+        );
+        return;
+      }
 
       const renderer = new Renderer({
+        canvas,
         dpr: Math.min(window.devicePixelRatio, 2),
         alpha: true,
       });
@@ -369,6 +385,7 @@ void main() {
     initializeWebGL();
 
     return () => {
+      cancelled = true;
       if (cleanupFunctionRef.current) {
         cleanupFunctionRef.current();
         cleanupFunctionRef.current = null;
