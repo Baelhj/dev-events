@@ -2,19 +2,13 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import BookEvent from "@/components/BookEvent";
 import { Event } from "@/database/event.model";
-import { getSimilarEventsBySlug } from "@/lib/actions/event.actions";
+import {
+  getEventBySlug,
+  getSimilarEventsBySlug,
+} from "@/lib/actions/event.actions";
 import EventCard from "@/components/EventCard";
 import { formatEventDate, formatEventTime } from "@/lib/utils";
 import { cacheLife } from "next/cache";
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
-
-async function getEventBySlug(slug: string) {
-  const req = await fetch(`${BASE_URL}/api/events/${slug}`);
-  const { event } = await req.json();
-
-  return event;
-}
 
 const EventDetailItem = ({
   icon,
@@ -63,6 +57,11 @@ const EventDetailes = async ({
 
   const { slug } = await params;
   const event = await getEventBySlug(slug);
+
+  if (!event || !event.description) {
+    notFound();
+  }
+
   const {
     description,
     overview,
@@ -76,10 +75,6 @@ const EventDetailes = async ({
     organizer,
     tags,
   } = event;
-
-  if (!description) {
-    notFound();
-  }
 
   const bookings = 10; // Placeholder for the number of available bookings
 
