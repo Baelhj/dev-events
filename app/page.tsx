@@ -1,6 +1,6 @@
 import ExploreBtn from "@/components/ExploreBtn";
 import EventCard from "@/components/EventCard";
-import { Event } from "@/database/event.model";
+// import { Event } from "@/database/event.model";
 import {cacheLife} from "next/cache";
 import {events} from "@/lib/constants"
 
@@ -29,7 +29,7 @@ const page = async () => {
         <ul className="events">
           {events &&
             events.length > 0 &&
-            events.map((event: Event) => (
+            events.map((event) => (
               <li key={event.title} className="list-none">
                 <EventCard {...event} />
               </li>
