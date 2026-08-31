@@ -25,17 +25,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       className={cn(
-        "min-h-screen",
+        "min-h-screen bg-background",
         "antialiased",
         schibstedGrotesk.variable,
         martianMono.variable,
         "font-sans",
       )}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="relative min-h-screen flex flex-col bg-background">
         <NavBar />
 
-        <div className="absolute inset-0 top-0 z-[-1] min-h-screen">
+        <div className="pointer-events-none fixed inset-0 z-0 h-screen w-screen overflow-hidden">
           <LightRays
             raysOrigin="top-center-offset"
             raysColor="#5dfeca"
@@ -48,7 +48,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             distortion={0.01}
           />
         </div>
-        <main>{children}</main>
+        <main className="relative z-10">{children}</main>
       </body>
     </html>
   );
